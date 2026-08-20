@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Pass Points{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0"><i class="fas fa-hand-pointer"></i> Verify Your Secret Points</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Click your 5 secret points in the correct sequence</strong><br>
+                    <small>Tip: Click as close as possible to your original points. You have ±25 pixel tolerance.</small>
+                </div>
+                
+                <div class="text-center mb-3">
+                    <span class="badge bg-primary fs-5">Points Clicked: <span id="pointCount">0</span>/5</span>
+                    <span class="badge bg-danger fs-5 ms-3">Attempts Left: <span id="attemptsLeft">{{ attempts_left }}</span></span>
+                </div>
+                
+                <div class="image-container" id="imageContainer">
+                    <canvas id="imageCanvas"></canvas>
+                    <img id="userImage" src="{{ url_for('static', filename=image_path) }}" style="display:none;">
+                </div>
+                
+                <div class="mt-3 text-center">
+                    <button id="resetBtn" class="btn btn-warning">
+                        <i class="fas fa-redo"></i> Reset Points
+                    </button>
+                    <button id="verifyBtn" class="btn btn-success" disabled>
+                        <i class="fas fa-check"></i> Verify & Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/verify_points.js') }}"></script>
+{% endblock %}

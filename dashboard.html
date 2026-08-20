@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Graphical Password Authentication{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> Welcome, {{ user.username }}!
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-file-upload"></i> Upload & Encrypt File</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Choose File</label>
+                        <input type="file" class="form-control" id="file" name="file" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="codeword" class="form-label">Enter Codeword</label>
+                        <input type="password" class="form-control" id="codeword" name="codeword" 
+                               placeholder="Your secret codeword" required>
+                        <small class="form-text text-muted">
+                            Remember this codeword - it's needed to decrypt the file!
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-lock"></i> Encrypt & Upload
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-note-sticky"></i> Add Encrypted Note</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_note') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Note Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Note Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-save"></i> Save Encrypted Note
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-folder-open"></i> My Encrypted Files</h4>
+            </div>
+            <div class="card-body">
+                {% if files %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Size</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in files %}
+                                <tr>
+                                    <td><i class="fas fa-file"></i> {{ file.original_filename }}</td>
+                                    <td>{{ (file.file_size / 1024) | round(2) }} KB</td>
+                                    <td>{{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary decrypt-btn" 
+                                                data-file-id="{{ file.id }}" 
+                                                data-filename="{{ file.original_filename }}">
+                                            <i class="fas fa-unlock"></i> Decrypt
+                                        </button>
+                                        <form method="POST" action="{{ url_for('delete_file', file_id=file.id) }}" 
+                                              style="display:inline;" 
+                                              onsubmit="return confirm('Delete this file?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No encrypted files yet. Upload your first file above!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="fas fa-book"></i> My Encrypted Notes</h4>
+            </div>
+            <div class="card-body">
+                {% if notes %}
+                    <div class="row">
+                        {% for note in notes %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ note.title }}</h5>
+                                    <p class="card-text text-muted">
+                                        <small>Created: {{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </p>
+                                    <a href="{{ url_for('view_note', note_id=note.id) }}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <form method="POST" action="{{ url_for('delete_note', note_id=note.id) }}" 
+                                          style="display:inline;" 
+                                          onsubmit="return confirm('Delete this note?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No encrypted notes yet. Create your first note above!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="decryptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enter Codeword to Decrypt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>File: <strong id="modalFilename"></strong></p>
+                <form id="decryptForm">
+                    <input type="hidden" id="fileId" name="file_id">
+                    <div class="mb-3">
+                        <label for="decryptCodeword" class="form-label">Codeword</label>
+                        <input type="password" class="form-control" id="decryptCodeword" 
+                               name="codeword" placeholder="Enter your codeword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDecrypt">
+                    <i class="fas fa-unlock"></i> Decrypt & Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
